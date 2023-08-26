@@ -1,3 +1,4 @@
+import { connectToDatabase } from '../../utils/mongoConnect';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { PineconeStore } from 'langchain/vectorstores/pinecone';
@@ -15,7 +16,7 @@ export default async function handler(
   console.log('question', question);
   console.log('history', history);
 
-  //only accept post requests
+  // only accept post requests
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -24,6 +25,7 @@ export default async function handler(
   if (!question) {
     return res.status(400).json({ message: 'No question in the request' });
   }
+
   // OpenAI recommends replacing newlines with spaces for best results
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
 
@@ -51,13 +53,25 @@ export default async function handler(
       }
     });
 
-    //Ask a question using chat history
+    // Ask a question using chat history
     const response = await chain.call({
       question: sanitizedQuestion,
       chat_history: pastMessages
     });
 
     console.log('response', response);
+    
+    // MongoDB Integration
+    const { db } = await connectToDatabase(process.env.MONGO_URI);
+    const collection = db.collection('testCollection');
+    
+    // Storing the question and response in MongoDB
+    await collection.insertOne({
+        question: sanitizedQuestion,
+        response: response,
+        timestamp: new Date()
+    });
+    
     res.status(200).json(response);
   } catch (error: any) {
     console.log('error', error);

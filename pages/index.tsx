@@ -1,4 +1,3 @@
-
 import { useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useUser } from '@auth0/nextjs-auth0/client';
