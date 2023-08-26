@@ -1,4 +1,9 @@
+
 import { useRef, useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useUser } from '@auth0/nextjs-auth0/client';
+
+
 import Layout from '@/components/layout';
 import styles from '@/styles/Home.module.css';
 import { Message } from '@/types/chat';
@@ -14,6 +19,18 @@ import {
 } from '@/components/ui/accordion';
 
 export default function Home() {
+  
+  const router = useRouter();
+
+  const { user, isLoading } = useUser();
+
+useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/api/auth/login');
+    }
+  }, [isLoading, user]);
+
+  
   const [query, setQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +50,7 @@ export default function Home() {
   });
 
   const { messages, history } = messageState;
-
+  console.log(user);
   const messageListRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -261,8 +278,8 @@ export default function Home() {
           </main>
         </div>
         <footer className="m-auto p-4">
-          <a href="https://twitter.com/mayowaoshin">
-            Powered by LangChainAI. Demo built by Mayo (Twitter: @mayowaoshin).
+          <a href="/api/auth/logout">Logout - 
+            Powered by LangChainAI. Demo built by Mayo
           </a>
         </footer>
       </Layout>
