@@ -17,13 +17,23 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
+// server-side authentication check
+import { requireAuthServerSide } from '../utils/requireAuthServerSide';
+
+export async function getServerSideProps(context) {
+  return await requireAuthServerSide(context);
+}
+
+
+// export the page
 export default function Home() {
   
   const router = useRouter();
 
   const { user, isLoading } = useUser();
 
-useEffect(() => {
+  // client-side authentication check
+  useEffect(() => {
     if (!isLoading && !user) {
       router.push('/api/auth/login');
     }
