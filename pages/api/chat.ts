@@ -9,6 +9,8 @@ import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
 
 import { requireAuthChat } from '../../utils/requireAuthChat';
 
+import { getUserInfo } from '../../utils/getUserInfo';
+
 
 export default async function handler(
   req: NextApiRequest,
@@ -70,14 +72,26 @@ export default async function handler(
       chat_history: pastMessages
     });
 
-    console.log('response', response);
+    console.log('response', response); // TODO: for testing
     
-    // MongoDB Integration
+    // MongoDB Integration: connect to DB
     const { db } = await connectToDatabase(process.env.MONGO_URI);
     const collection = db.collection('testCollection');
+
+    console.log("start user_id fetch"); // TODO: for testing
+
+    //MongoDB: get user_info from session token
+    const user_info = await getUserInfo(req, res);
+    if (!user_info) {
+      return res.status(401).json({ message: 'Failed to get user info' });
+    }
+    const user_id = user_info.sub
+
+    console.log("user_info: " + JSON.stringify(user_info)); // TODO: for testing
     
     // Storing the question and response in MongoDB
     await collection.insertOne({
+        user_id: user_id,
         question: sanitizedQuestion,
         response: response,
         timestamp: new Date()
