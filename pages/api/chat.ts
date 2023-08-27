@@ -7,19 +7,30 @@ import { makeChain } from '@/utils/makechain';
 import { pinecone } from '@/utils/pinecone-client';
 import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
 
+import { requireAuthChat } from '../../utils/requireAuthChat';
+
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+
   const { question, history } = req.body;
 
-  console.log('question', question);
-  console.log('history', history);
+  console.log('question', question); // TODO: for testing purposes.
+  console.log('history', history); // TODO: for testing purposes.
 
   // only accept post requests
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
+  }
+
+  // server-side authentication check: only logged-in clients allowed
+  const isAuthenticated = await requireAuthChat(req, res);
+  if (!isAuthenticated) {
+    res.status(401).send('Unauthorized');
+    return; // not logged in
   }
 
   if (!question) {
