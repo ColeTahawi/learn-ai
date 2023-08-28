@@ -93,7 +93,7 @@ export default async function handler(
     await collection.insertOne({
         user_id: user_id,
         question: sanitizedQuestion,
-        response: response,
+        response: response.text,
         timestamp: new Date()
     });
     
